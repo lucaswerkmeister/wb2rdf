@@ -5,7 +5,7 @@ ini_set( 'display_startup_errors', 1 );
 error_reporting( E_ALL );
 
 if ( $_SERVER['REQUEST_METHOD'] !== 'POST' ) {
-	readfile( 'form.html' );
+	readfile( __DIR__ . '/form.html' );
 	return;
 }
 
