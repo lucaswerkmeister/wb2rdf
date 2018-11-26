@@ -10,6 +10,12 @@ function wfTimestamp( $format, $timestamp ) {
 	return gmdate( $format, $timestamp );
 }
 define( 'TS_ISO_8601', 'Y-m-d\TH:i:s\Z' );
+function wfLogWarning( $msg ) {
+	echo $msg . PHP_EOL; // I’m so sorry
+}
+
+define( 'CONTENT_MODEL_WIKIBASE_ITEM', 'wikibase-item' );
+define( 'CONTENT_MODEL_WIKIBASE_PROPERTY', 'wikibase-property' );
 
 class MyPropertyDataTypeLookup implements PropertyDataTypeLookup {
 	public function getDataTypeIdForProperty( PropertyId $propertyId ) {
