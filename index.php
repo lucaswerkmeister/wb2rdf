@@ -66,8 +66,8 @@ $dataTypes = [
 			DedupeBag $dedupe
 		) {
 			return new LiteralValueRdfBuilder( null, null );
-		}
-	]
+		},
+	],
 ];
 $dataTypeDefinitions = new DataTypeDefinitions( $dataTypes );
 
