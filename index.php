@@ -4,6 +4,11 @@ ini_set( 'display_errors', 1 );
 ini_set( 'display_startup_errors', 1 );
 error_reporting( E_ALL );
 
+if ( $_SERVER['REQUEST_METHOD'] !== 'POST' ) {
+	readfile( 'form.html' );
+	return;
+}
+
 require_once( 'vendor/autoload.php' );
 
 global $wgAutoloadClasses;
@@ -168,9 +173,9 @@ $entityTypeDefinitions = new EntityTypeDefinitions( $entityTypes );
 
 $vocabulary = new RdfVocabulary(
 	[
-		'' => 'http://localhost/',
+		'' => $_POST['baseURI'],
 	],
-	'http://localhost/',
+	$_POST['dataURI'],
 	[ // see https://meta.wikimedia.org/wiki/Special_language_codes
 		'simple' => 'en-simple',
 		'crh' => 'crh-Latn',
@@ -223,11 +228,26 @@ $entityDeserializer = new DispatchingDeserializer( array_map(
 	},
 	$entityTypeDefinitions->getDeserializerFactoryCallbacks()
 ) );
-$fullJson = file_get_contents( 'https://www.wikidata.org/wiki/Special:EntityData/P31.json' );
-$entity = $entityDeserializer->deserialize( json_decode( $fullJson, true )['entities']['P31'] );
+$json = json_decode( $_POST['json'], true );
+if ( !is_array( $json ) ) {
+	http_response_code( 400 );
+	echo 'Invalid JSON!';
+	return;
+}
+$entities = [];
+if ( array_key_exists( 'entities', $json ) ) {
+	foreach ( $json['entities'] as $entityId => $entitySerialization ) {
+		$entities[] = $entityDeserializer->deserialize( $entitySerialization );
+	}
+} else {
+	$entities[] = $entityDeserializer->deserialize( $json );
+}
 
 $builder->startDocument();
-$builder->addEntity( $entity ) ;
+foreach ( $entities as $entity ) {
+	// we don’t have the information to add the revision info or page props
+	$builder->addEntity( $entity ) ;
+}
 $builder->finishDocument();
 
 header( 'Content-Type: text/plain' ); // TODO change to turtle
