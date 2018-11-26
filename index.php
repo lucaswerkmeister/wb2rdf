@@ -21,20 +21,32 @@ spl_autoload_register( function ( $fqn ) {
 require_once( 'stubs.php' );
 
 use DataValues\Deserializers\DataValueDeserializer;
+use DataValues\Geo\Values\GlobeCoordinateValue;
+use DataValues\MonolingualTextValue;
+use DataValues\QuantityValue;
 use DataValues\StringValue;
+use DataValues\TimeValue;
 use Deserializers\DispatchingDeserializer;
 use Wikibase\DataModel\DeserializerFactory;
 use Wikibase\DataModel\Entity\DispatchingEntityIdParser;
+use Wikibase\DataModel\Entity\EntityIdValue;
 use Wikibase\Lib\DataTypeDefinitions;
 use Wikibase\Lib\EntityTypeDefinitions;
 use Wikibase\Rdf\DedupeBag;
 use Wikibase\Rdf\EntityMentionListener;
 use Wikibase\Rdf\EntityRdfBuilderFactory;
+use Wikibase\Rdf\JulianDateTimeValueCleaner;
 use Wikibase\Rdf\NullDedupeBag;
 use Wikibase\Rdf\RdfBuilder;
 use Wikibase\Rdf\RdfProducer;
 use Wikibase\Rdf\RdfVocabulary;
+use Wikibase\Rdf\Values\ComplexValueRdfHelper;
+use Wikibase\Rdf\Values\EntityIdRdfBuilder;
+use Wikibase\Rdf\Values\GlobeCoordinateRdfBuilder;
 use Wikibase\Rdf\Values\LiteralValueRdfBuilder;
+use Wikibase\Rdf\Values\MonolingualTextRdfBuilder;
+use Wikibase\Rdf\Values\QuantityRdfBuilder;
+use Wikibase\Rdf\Values\TimeRdfBuilder;
 use Wikibase\Rdf\ValueSnakRdfBuilderFactory;
 use Wikimedia\Purtle\RdfWriter;
 use Wikimedia\Purtle\TurtleRdfWriter;
@@ -56,6 +68,15 @@ foreach ( $repoDataTypes as $type => $repoDefinition ) {
 	}
 }
 */
+
+function makeComplexValueHelper( $flags, RdfVocabulary $vocab, RdfWriter $writer, DedupeBag $dedupe ) {
+	if ( $flags & RdfProducer::PRODUCE_FULL_VALUES ) {
+		return new ComplexValueRdfHelper( $vocab, $writer->sub(), $dedupe );
+	} else {
+		return null;
+	}
+}
+
 $dataTypes = [
 	'VT:string' => [
 		'rdf-builder-factory-callback' => function (
@@ -66,6 +87,66 @@ $dataTypes = [
 			DedupeBag $dedupe
 		) {
 			return new LiteralValueRdfBuilder( null, null );
+		},
+	],
+	'VT:monolingualtext' => [
+		'rdf-builder-factory-callback' => function (
+			$flags,
+			RdfVocabulary $vocab,
+			RdfWriter $writer,
+			EntityMentionListener $tracker,
+			DedupeBag $dedupe
+		) {
+			return new MonolingualTextRdfBuilder();
+		},
+	],
+	'VT:globecoordinate' => [
+		'rdf-builder-factory-callback' => function (
+			$flags,
+			RdfVocabulary $vocab,
+			RdfWriter $writer,
+			EntityMentionListener $tracker,
+			DedupeBag $dedupe
+		) {
+			$complexValueHelper = makeComplexValueHelper( $flags, $vocab, $writer, $dedupe );
+			return new GlobeCoordinateRdfBuilder( $complexValueHelper );
+		},
+	],
+	'VT:quantity' => [
+		'rdf-builder-factory-callback' => function (
+			$flags,
+			RdfVocabulary $vocab,
+			RdfWriter $writer,
+			EntityMentionListener $tracker,
+			DedupeBag $dedupe
+		) {
+			$complexValueHelper = makeComplexValueHelper( $flags, $vocab, $writer, $dedupe );
+			$unitConverter = null; // not supported for now
+			return new QuantityRdfBuilder( $complexValueHelper, $unitConverter );
+		},
+	],
+	'VT:time' => [
+		'rdf-builder-factory-callback' => function (
+			$flags,
+			RdfVocabulary $vocab,
+			RdfWriter $writer,
+			EntityMentionListener $tracker,
+			DedupeBag $dedupe
+		) {
+			$dateCleaner = new JulianDateTimeValueCleaner();
+			$complexValueHelper = makeComplexValueHelper( $flags, $vocab, $writer, $dedupe );
+			return new TimeRdfBuilder( $dateCleaner, $complexValueHelper );
+		},
+	],
+	'VT:wikibase-entityid' => [
+		'rdf-builder-factory-callback' => function (
+			$flags,
+			RdfVocabulary $vocab,
+			RdfWriter $writer,
+			EntityMentionListener $tracker,
+			DedupeBag $dedupe
+		) {
+			return new EntityIdRdfBuilder( $vocab, $tracker );
 		},
 	],
 ];
@@ -98,13 +179,21 @@ $builder = new RdfBuilder(
 	new MyEntityTitleLookup()
 );
 
+$entityIdParser = new DispatchingEntityIdParser(
+	$entityTypeDefinitions->getEntityIdBuilders()
+);
 $deserializerFactory = new DeserializerFactory(
 	new DataValueDeserializer( [
 		'string' => StringValue::class,
+		'monolingualtext' => MonolingualTextValue::class,
+		'globecoordinate' => GlobeCoordinateValue::class,
+		'quantity' => QuantityValue::class,
+		'time' => TimeValue::class,
+		'wikibase-entityid' => function ( $value ) use ( $entityIdParser ) {
+			return new EntityIdValue( $entityIdParser->parse( $value['id'] ) );
+		},
 	] ),
-	new DispatchingEntityIdParser(
-		$entityTypeDefinitions->getEntityIdBuilders()
-	)
+	$entityIdParser
 );
 $entityDeserializer = new DispatchingDeserializer( array_map(
 	function ( $callback ) use ( $deserializerFactory ) {
@@ -112,8 +201,8 @@ $entityDeserializer = new DispatchingDeserializer( array_map(
 	},
 	$entityTypeDefinitions->getDeserializerFactoryCallbacks()
 ) );
-$fullJson = file_get_contents( 'https://www.wikidata.org/wiki/Special:EntityData/Q5384579.json' );
-$entity = $entityDeserializer->deserialize( json_decode( $fullJson, true )['entities']['Q5384579'] );
+$fullJson = file_get_contents( 'https://www.wikidata.org/wiki/Special:EntityData/Q42.json' );
+$entity = $entityDeserializer->deserialize( json_decode( $fullJson, true )['entities']['Q42'] );
 
 $builder->startDocument();
 $builder->addEntity( $entity ) ;
