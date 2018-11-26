@@ -38,6 +38,8 @@ use Wikibase\Rdf\EntityRdfBuilderFactory;
 use Wikibase\Rdf\HashDedupeBag;
 use Wikibase\Rdf\JulianDateTimeValueCleaner;
 use Wikibase\Rdf\NullDedupeBag;
+use Wikibase\Rdf\NullEntityRdfBuilder;
+use Wikibase\Rdf\PropertyRdfBuilder;
 use Wikibase\Rdf\RdfBuilder;
 use Wikibase\Rdf\RdfProducer;
 use Wikibase\Rdf\RdfVocabulary;
@@ -136,7 +138,31 @@ $dataTypes = [
 $dataTypeDefinitions = new DataTypeDefinitions( $dataTypes );
 
 $baseEntityTypes = require 'extensions/Wikibase/lib/WikibaseLib.entitytypes.php';
-$repoEntityTypes = []; // require 'extensions/Wikibase/repo/WikibaseRepo.entitytypes.php';
+$repoEntityTypes = [ // based on extensions/Wikibase/repo/WikibaseRepo.entitytypes.php
+	'item' => [
+		'rdf-builder-factory-callback' => function(
+			$flavorFlags,
+			RdfVocabulary $vocabulary,
+			RdfWriter $writer,
+			$mentionedEntityTracker,
+			$dedupe
+		) {
+			// we do not support sitelinks for now, so nothing to do
+			return new NullEntityRdfBuilder();
+		},
+	],
+	'property' => [
+		'rdf-builder-factory-callback' => function(
+			$flavorFlags,
+			RdfVocabulary $vocabulary,
+			RdfWriter $writer,
+			$mentionedEntityTracker,
+			$dedupe
+		) {
+			return new PropertyRdfBuilder( $vocabulary, $writer );
+		},
+	],
+];
 $entityTypes = array_merge_recursive( $baseEntityTypes, $repoEntityTypes );
 $entityTypeDefinitions = new EntityTypeDefinitions( $entityTypes );
 
@@ -197,8 +223,8 @@ $entityDeserializer = new DispatchingDeserializer( array_map(
 	},
 	$entityTypeDefinitions->getDeserializerFactoryCallbacks()
 ) );
-$fullJson = file_get_contents( 'https://www.wikidata.org/wiki/Special:EntityData/Q42.json' );
-$entity = $entityDeserializer->deserialize( json_decode( $fullJson, true )['entities']['Q42'] );
+$fullJson = file_get_contents( 'https://www.wikidata.org/wiki/Special:EntityData/P31.json' );
+$entity = $entityDeserializer->deserialize( json_decode( $fullJson, true )['entities']['P31'] );
 
 $builder->startDocument();
 $builder->addEntity( $entity ) ;
