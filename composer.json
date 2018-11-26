@@ -3,7 +3,8 @@
     "description": "converts Wikibase JSON to RDF",
     "require": {
         "wikibase/wikibase": "dev-master",
-        "ext-json": "*"
+        "ext-json": "*",
+        "willdurand/negotiation": "^2.0"
     },
     "license": "AGPL-3.0-or-later",
     "authors": [

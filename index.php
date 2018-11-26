@@ -32,6 +32,7 @@ use DataValues\QuantityValue;
 use DataValues\StringValue;
 use DataValues\TimeValue;
 use Deserializers\DispatchingDeserializer;
+use Negotiation\Negotiator;
 use Wikibase\DataModel\DeserializerFactory;
 use Wikibase\DataModel\Entity\DispatchingEntityIdParser;
 use Wikibase\DataModel\Entity\EntityIdValue;
@@ -57,6 +58,7 @@ use Wikibase\Rdf\Values\QuantityRdfBuilder;
 use Wikibase\Rdf\Values\TimeRdfBuilder;
 use Wikibase\Rdf\ValueSnakRdfBuilderFactory;
 use Wikimedia\Purtle\RdfWriter;
+use Wikimedia\Purtle\RdfWriterFactory;
 use Wikimedia\Purtle\TurtleRdfWriter;
 
 function makeComplexValueHelper( $flags, RdfVocabulary $vocab, RdfWriter $writer, DedupeBag $dedupe ) {
@@ -171,6 +173,16 @@ $repoEntityTypes = [ // based on extensions/Wikibase/repo/WikibaseRepo.entitytyp
 $entityTypes = array_merge_recursive( $baseEntityTypes, $repoEntityTypes );
 $entityTypeDefinitions = new EntityTypeDefinitions( $entityTypes );
 
+$rdfWriterFactory = new RdfWriterFactory();
+$rdfMimeTypes = [];
+foreach ( $rdfWriterFactory->getSupportedFormats() as $format ) {
+	$rdfMimeTypes = array_merge( $rdfMimeTypes, $rdfWriterFactory->getMimeTypes( $format ) );
+}
+$negotiator = new Negotiator();
+$mediaType = $negotiator->getBest( $_SERVER['HTTP_ACCEPT'], $rdfMimeTypes );
+$format = $rdfWriterFactory->getFormatName( $mediaType->getType() );
+$rdfWriter = $rdfWriterFactory->getWriter( $format );
+
 $vocabulary = new RdfVocabulary(
 	[
 		'' => $_POST['baseURI'],
@@ -201,7 +213,7 @@ $builder = new RdfBuilder(
 		$entityTypeDefinitions->getRdfBuilderFactoryCallbacks()
 	),
 	RdfProducer::PRODUCE_ALL & ~RdfProducer::PRODUCE_SITELINKS,
-	new TurtleRdfWriter(),
+	$rdfWriter,
 	new HashDedupeBag(),
 	new MyEntityTitleLookup()
 );
@@ -250,5 +262,5 @@ foreach ( $entities as $entity ) {
 }
 $builder->finishDocument();
 
-header( 'Content-Type: text/plain' ); // TODO change to turtle
+header( 'Content-Type: ' . $rdfWriterFactory->getMimeTypes( $format )[0] );
 echo $builder->getRDF();
