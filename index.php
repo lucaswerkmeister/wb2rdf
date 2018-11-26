@@ -35,6 +35,7 @@ use Wikibase\Lib\EntityTypeDefinitions;
 use Wikibase\Rdf\DedupeBag;
 use Wikibase\Rdf\EntityMentionListener;
 use Wikibase\Rdf\EntityRdfBuilderFactory;
+use Wikibase\Rdf\HashDedupeBag;
 use Wikibase\Rdf\JulianDateTimeValueCleaner;
 use Wikibase\Rdf\NullDedupeBag;
 use Wikibase\Rdf\RdfBuilder;
@@ -175,7 +176,7 @@ $builder = new RdfBuilder(
 	),
 	RdfProducer::PRODUCE_ALL,
 	new TurtleRdfWriter(),
-	new NullDedupeBag(),
+	new HashDedupeBag(),
 	new MyEntityTitleLookup()
 );
 
