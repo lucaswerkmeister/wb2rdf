@@ -195,7 +195,7 @@ $builder = new RdfBuilder(
 	new EntityRdfBuilderFactory(
 		$entityTypeDefinitions->getRdfBuilderFactoryCallbacks()
 	),
-	RdfProducer::PRODUCE_ALL,
+	RdfProducer::PRODUCE_ALL & ~RdfProducer::PRODUCE_SITELINKS,
 	new TurtleRdfWriter(),
 	new HashDedupeBag(),
 	new MyEntityTitleLookup()
