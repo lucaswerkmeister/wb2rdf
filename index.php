@@ -52,24 +52,6 @@ use Wikibase\Rdf\ValueSnakRdfBuilderFactory;
 use Wikimedia\Purtle\RdfWriter;
 use Wikimedia\Purtle\TurtleRdfWriter;
 
-/*
-$baseDataTypes = require 'extensions/Wikibase/lib/WikibaseLib.datatypes.php';
-$repoDataTypes = require 'extensions/Wikibase/repo/WikibaseRepo.datatypes.php';
-$dataTypes = $baseDataTypes;
-foreach ( $repoDataTypes as $type => $repoDefinition ) {
-	$baseDefinition = isset( $baseDataTypes[$type] ) ? $baseDataTypes[$type] : [];
-	$dataTypes[$type] = array_merge( $baseDefinition, $repoDefinition );
-	// hack: strip away everything except the RDF building, because the other stuff might require a repo
-	if ( array_key_exists( 'rdf-builder-factory-callback', $dataTypes[$type] ) ) {
-		$dataTypes[$type] = [
-			'rdf-builder-factory-callback' => $dataTypes[$type]['rdf-builder-factory-callback'],
-		];
-	} else {
-		$dataTypes[$type] = [];
-	}
-}
-*/
-
 function makeComplexValueHelper( $flags, RdfVocabulary $vocab, RdfWriter $writer, DedupeBag $dedupe ) {
 	if ( $flags & RdfProducer::PRODUCE_FULL_VALUES ) {
 		return new ComplexValueRdfHelper( $vocab, $writer->sub(), $dedupe );
