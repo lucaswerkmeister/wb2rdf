@@ -162,7 +162,20 @@ $vocabulary = new RdfVocabulary(
 	[
 		'' => 'http://localhost/',
 	],
-	'http://localhost/'
+	'http://localhost/',
+	[ // see https://meta.wikimedia.org/wiki/Special_language_codes
+		'simple' => 'en-simple',
+		'crh' => 'crh-Latn',
+		'cbk-zam' => 'cbk-x-zam',
+		'map-bms' => 'jv-x-bms',
+		'nrm' => 'fr-x-nrm',
+		'roa-tara' => 'it-x-tara',
+		'de-formal' => 'de-x-formal',
+		'es-formal' => 'es-x-formal',
+		'hu-formal' => 'hu-x-formal',
+		'nl-informal' => 'nl-x-informal',
+	],
+	$dataTypeDefinitions->getRdfTypeUris()
 );
 $builder = new RdfBuilder(
 	new SiteList(),
