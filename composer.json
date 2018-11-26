@@ -2,7 +2,8 @@
     "name": "lucaswerkmeister/wb2rdf",
     "description": "converts Wikibase JSON to RDF",
     "require": {
-        "wikibase/wikibase": "dev-master"
+        "wikibase/wikibase": "dev-master",
+        "ext-json": "*"
     },
     "license": "AGPL-3.0-or-later",
     "authors": [
