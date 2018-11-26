@@ -9,21 +9,21 @@ if ( $_SERVER['REQUEST_METHOD'] !== 'POST' ) {
 	return;
 }
 
-require_once( 'vendor/autoload.php' );
+require_once 'vendor/autoload.php';
 
 global $wgAutoloadClasses;
 $wgAutoloadClasses = [];
 
-require_once( 'extensions/Wikibase/lib/autoload.php' );
-require_once( 'extensions/Wikibase/data-access/autoload.php' );
-require_once( 'extensions/Wikibase/repo/autoload.php' );
+require_once 'extensions/Wikibase/lib/autoload.php';
+require_once 'extensions/Wikibase/data-access/autoload.php';
+require_once 'extensions/Wikibase/repo/autoload.php';
 
 spl_autoload_register( function ( $fqn ) {
 	global $wgAutoloadClasses;
-	require_once( $wgAutoloadClasses[$fqn] );
+	require_once $wgAutoloadClasses[$fqn];
 } );
 
-require_once( 'stubs.php' );
+require_once 'stubs.php';
 
 use DataValues\Deserializers\DataValueDeserializer;
 use DataValues\Geo\Values\GlobeCoordinateValue;
@@ -43,7 +43,6 @@ use Wikibase\Rdf\EntityMentionListener;
 use Wikibase\Rdf\EntityRdfBuilderFactory;
 use Wikibase\Rdf\HashDedupeBag;
 use Wikibase\Rdf\JulianDateTimeValueCleaner;
-use Wikibase\Rdf\NullDedupeBag;
 use Wikibase\Rdf\NullEntityRdfBuilder;
 use Wikibase\Rdf\PropertyRdfBuilder;
 use Wikibase\Rdf\RdfBuilder;
@@ -59,9 +58,13 @@ use Wikibase\Rdf\Values\TimeRdfBuilder;
 use Wikibase\Rdf\ValueSnakRdfBuilderFactory;
 use Wikimedia\Purtle\RdfWriter;
 use Wikimedia\Purtle\RdfWriterFactory;
-use Wikimedia\Purtle\TurtleRdfWriter;
 
-function makeComplexValueHelper( $flags, RdfVocabulary $vocab, RdfWriter $writer, DedupeBag $dedupe ) {
+function makeComplexValueHelper(
+	$flags,
+	RdfVocabulary $vocab,
+	RdfWriter $writer,
+	DedupeBag $dedupe
+) {
 	if ( $flags & RdfProducer::PRODUCE_FULL_VALUES ) {
 		return new ComplexValueRdfHelper( $vocab, $writer->sub(), $dedupe );
 	} else {
@@ -258,7 +261,7 @@ if ( array_key_exists( 'entities', $json ) ) {
 $builder->startDocument();
 foreach ( $entities as $entity ) {
 	// we don’t have the information to add the revision info or page props
-	$builder->addEntity( $entity ) ;
+	$builder->addEntity( $entity );
 }
 $builder->finishDocument();
 
