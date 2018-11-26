@@ -116,7 +116,6 @@ $fullJson = file_get_contents( 'https://www.wikidata.org/wiki/Special:EntityData
 $entity = $entityDeserializer->deserialize( json_decode( $fullJson, true )['entities']['Q5384579'] );
 
 $builder->startDocument();
-$builder->addDumpHeader();
 $builder->addEntity( $entity ) ;
 $builder->finishDocument();
 
