@@ -16,6 +16,13 @@
     </nav>
     <main class="container mt-3">
       <h1>Wikibase to RDF</h1>
+      <p>
+        This tool converts entities in <a href="http://www.wikidata.org/entity/Q58624545">Wikibase’ native JSON format</a>
+        into <a href="http://www.wikidata.org/entity/Q54872"><abbr title="Resource Description Framework">RDF</abbr></a> in various syntaxes.
+        You can use it to get the RDF version of some data
+        before saving it in a Wikibase instance (e. g. <a href="http://www.wikidata.org/entity/Q2013">Wikidata</a>),
+        for instance to sanity-check the data with RDF-based tools.
+      </p>
       <form method="post">
         <div class="form-group">
           <label for="json">Wikibase JSON</label>
@@ -44,6 +51,14 @@
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
+      <p>
+        The format in which the data will be returned is subject to <a href="http://www.wikidata.org/entity/Q1128629">HTTP content negotiation</a>.
+        If you’re submitting the above form in a browser, you will most likely get <a href="http://www.wikidata.org/entity/Q48940">RDF/XML</a> back,
+        which depending on the browser will be shown to you directly or offered as a file download.
+        When using the tool programmatically (by sending a <code>POST</code> request with appropriately encoded form data),
+        you can select different formats, such as <a href="http://www.wikidata.org/entity/Q114409">Turtle</a> or <a href="http://www.wikidata.org/entity/Q44044">N-Triples</a>,
+        by specifying their MIME types in the <code>Accept</code> header.
+      </p>
     </main>
   </body>
 </html>
