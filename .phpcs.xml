@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<ruleset>
+  <rule ref="./vendor/wikibase/wikibase-codesniffer/Wikibase"/>
+
+  <rule ref="MediaWiki.Usage.SuperGlobalsUsage.SuperGlobals">
+    <exclude-pattern>*</exclude-pattern>
+  </rule>
+
+  <rule ref="MediaWiki.NamingConventions.PrefixedGlobalFunctions.wfPrefix">
+    <exclude-pattern>*</exclude-pattern>
+  </rule>
+
+  <rule ref="Squiz.Functions.GlobalFunction.Found">
+    <exclude-pattern>*</exclude-pattern>
+  </rule>
+
+  <file>index.php</file>
+</ruleset>
