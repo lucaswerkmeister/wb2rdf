@@ -20,17 +20,11 @@ spl_autoload_register( function ( $fqn ) {
 
 require_once( 'stubs.php' );
 
+use DataValues\Deserializers\DataValueDeserializer;
 use DataValues\StringValue;
-use Wikibase\DataModel\Entity\Item;
-use Wikibase\DataModel\Entity\ItemId;
-use Wikibase\DataModel\Entity\PropertyId;
-use Wikibase\DataModel\Snak\PropertyNoValueSnak;
-use Wikibase\DataModel\Snak\PropertyValueSnak;
-use Wikibase\DataModel\Statement\Statement;
-use Wikibase\DataModel\Statement\StatementList;
-use Wikibase\DataModel\Term\Fingerprint;
-use Wikibase\DataModel\Term\Term;
-use Wikibase\DataModel\Term\TermList;
+use Deserializers\DispatchingDeserializer;
+use Wikibase\DataModel\DeserializerFactory;
+use Wikibase\DataModel\Entity\DispatchingEntityIdParser;
 use Wikibase\Lib\DataTypeDefinitions;
 use Wikibase\Lib\EntityTypeDefinitions;
 use Wikibase\Rdf\DedupeBag;
@@ -104,30 +98,26 @@ $builder = new RdfBuilder(
 	new MyEntityTitleLookup()
 );
 
+$deserializerFactory = new DeserializerFactory(
+	new DataValueDeserializer( [
+		'string' => StringValue::class,
+	] ),
+	new DispatchingEntityIdParser(
+		$entityTypeDefinitions->getEntityIdBuilders()
+	)
+);
+$entityDeserializer = new DispatchingDeserializer( array_map(
+	function ( $callback ) use ( $deserializerFactory ) {
+		return $callback( $deserializerFactory );
+	},
+	$entityTypeDefinitions->getDeserializerFactoryCallbacks()
+) );
+$fullJson = file_get_contents( 'https://www.wikidata.org/wiki/Special:EntityData/Q5384579.json' );
+$entity = $entityDeserializer->deserialize( json_decode( $fullJson, true )['entities']['Q5384579'] );
+
 $builder->startDocument();
 $builder->addDumpHeader();
-$builder->addEntity( new Item(
-	new ItemId( 'Q1' ),
-	new Fingerprint( new TermList( [ new Term( 'en', 'test' ) ] ) ),
-	null,
-	new StatementList( [
-		new Statement(
-			new PropertyNoValueSnak( new PropertyId( 'P1' ) ),
-			null,
-			null,
-			'Q1$8133f72e-32f1-4866-b609-64862f08cea1'
-		),
-		new Statement(
-			new PropertyValueSnak(
-				new PropertyId( 'P2' ),
-				new StringValue( 'test' )
-			),
-			null,
-			null,
-			'Q1$b12a156e-7ab9-4e87-849f-d258564c99ed'
-		),
-	] )
-)) ;
+$builder->addEntity( $entity ) ;
 $builder->finishDocument();
 
 header( 'Content-Type: text/plain' ); // TODO change to turtle
