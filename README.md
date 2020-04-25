@@ -4,7 +4,7 @@
 
 ## Toolforge setup
 
-On Wikimedia Toolforge, this tool runs under the `lexeme-forms` tool name.
+On Wikimedia Toolforge, this tool runs under the `wb2rdf` tool name.
 Source code resides in `~/wb2rdf/`.
 
 If the web service is not running for some reason, run the following command:
