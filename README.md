@@ -10,15 +10,17 @@ Source code resides in `~/wb2rdf/`.
 If the web service is not running for some reason, run the following command:
 
 ```sh
-webservice --backend=kubernetes php7.2 start
+webservice start
 ```
 
 If it’s acting up, try the same command with `restart` instead of `start`.
+Both should pull their config from the `service.template` file,
+which is symlinked from the source code directory into the tool home directory.
 
 To update the service, run the following commands after becoming the tool account:
 
 ```sh
-webservice --backend=kubernetes php7.2 shell
+webservice shell
 cd ~/wb2rdf
 git fetch
 git diff @ @{u} # inspect changes
@@ -26,7 +28,7 @@ git merge --ff-only @{u}
 composer update
 ```
 
-However, the `webservice … shell` and `composer update` parts are only necessary
+However, the `webservice shell` and `composer update` parts are only necessary
 when new packages are required (i. e. when `composer.json` was changed).
 Otherwise, you can skip them.
 
